@@ -15,6 +15,7 @@
 namespace Cake\Test\TestCase\Shell;
 
 use Cake\Cache\Cache;
+use Cake\Console\Exception\StopException;
 use Cake\Shell\CacheShell;
 use Cake\TestSuite\TestCase;
 
@@ -34,7 +35,7 @@ class CacheShellTest extends TestCase
         parent::setUp();
         $this->io = $this->getMockBuilder('Cake\Console\ConsoleIo')->getMock();
         $this->shell = new CacheShell($this->io);
-        Cache::config('test', ['engine' => 'File', 'path' => TMP]);
+        Cache::config('test', ['engine' => 'File', 'path' => CACHE]);
     }
 
     /**
@@ -67,7 +68,7 @@ class CacheShellTest extends TestCase
      */
     public function testClearInvalidPrefix()
     {
-        $this->setExpectedException('Cake\Console\Exception\StopException');
+        $this->expectException(StopException::class);
         $this->shell->clear('foo');
     }
 

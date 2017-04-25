@@ -165,6 +165,7 @@ class PaginatorComponent extends Component
      */
     public function paginate($object, array $settings = [])
     {
+        $query = null;
         if ($object instanceof QueryInterface) {
             $query = $object;
             $object = $query->repository();
@@ -179,6 +180,7 @@ class PaginatorComponent extends Component
         $options['page'] = (int)$options['page'] < 1 ? 1 : (int)$options['page'];
         list($finder, $options) = $this->_extractFinder($options);
 
+        /* @var \Cake\Datasource\RepositoryInterface $object */
         if (empty($query)) {
             $query = $object->find($finder, $options);
         } else {
@@ -212,8 +214,8 @@ class PaginatorComponent extends Component
             'current' => $numResults,
             'count' => $count,
             'perPage' => $limit,
-            'prevPage' => ($page > 1),
-            'nextPage' => ($count > ($page * $limit)),
+            'prevPage' => $page > 1,
+            'nextPage' => $count > ($page * $limit),
             'pageCount' => $pageCount,
             'sort' => key($order),
             'direction' => current($order),
@@ -223,10 +225,10 @@ class PaginatorComponent extends Component
             'scope' => $options['scope'],
         ];
 
-        if (!isset($request['paging'])) {
-            $request['paging'] = [];
+        if (!$request->getParam('paging')) {
+            $request->params['paging'] = [];
         }
-        $request['paging'] = [$alias => $paging] + (array)$request['paging'];
+        $request->params['paging'] = [$alias => $paging] + (array)$request->getParam('paging');
 
         if ($requestedPage > $page) {
             throw new NotFoundException();
@@ -276,9 +278,9 @@ class PaginatorComponent extends Component
         $defaults = $this->getDefaults($alias, $settings);
         $request = $this->_registry->getController()->request;
         $scope = Hash::get($settings, 'scope', null);
-        $query = $request->query;
+        $query = $request->getQueryParams();
         if ($scope) {
-            $query = Hash::get($request->query, $scope, []);
+            $query = Hash::get($request->getQueryParams(), $scope, []);
         }
         $request = array_intersect_key($query, array_flip($this->_config['whitelist']));
 
@@ -286,25 +288,31 @@ class PaginatorComponent extends Component
     }
 
     /**
-     * Get the default settings for a $model. If there are no settings for a specific model, the general settings
+     * Get the settings for a $model. If there are no settings for a specific model, the general settings
      * will be used.
      *
-     * @param string $alias Model name to get default settings for.
-     * @param array $defaults The defaults to use for combining settings.
-     * @return array An array of pagination defaults for a model, or the general settings.
+     * @param string $alias Model name to get settings for.
+     * @param array $settings The settings which is used for combining.
+     * @return array An array of pagination settings for a model, or the general settings.
      */
-    public function getDefaults($alias, $defaults)
+    public function getDefaults($alias, $settings)
     {
-        if (isset($defaults[$alias])) {
-            $defaults = $defaults[$alias];
-        }
-        if (isset($defaults['limit']) &&
-            (empty($defaults['maxLimit']) || $defaults['limit'] > $defaults['maxLimit'])
-        ) {
-            $defaults['maxLimit'] = $defaults['limit'];
+        if (isset($settings[$alias])) {
+            $settings = $settings[$alias];
         }
 
-        return $defaults + $this->config();
+        $defaults = $this->getConfig();
+        $maxLimit = isset($settings['maxLimit']) ? $settings['maxLimit'] : $defaults['maxLimit'];
+        $limit = isset($settings['limit']) ? $settings['limit'] : $defaults['limit'];
+
+        if ($limit > $maxLimit) {
+            $limit = $maxLimit;
+        }
+
+        $settings['maxLimit'] = $maxLimit;
+        $settings['limit'] = $limit;
+
+        return $settings + $defaults;
     }
 
     /**

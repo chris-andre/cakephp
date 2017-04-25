@@ -50,10 +50,13 @@ class TimeTest extends TestCase
         Time::setTestNow($this->now);
         Time::setDefaultLocale($this->locale);
         Time::resetToStringFormat();
+        Time::setJsonEncodeFormat("yyyy-MM-dd'T'HH:mm:ssxxx");
 
         FrozenTime::setTestNow($this->frozenNow);
         FrozenTime::setDefaultLocale($this->locale);
         FrozenTime::resetToStringFormat();
+        FrozenTime::setJsonEncodeFormat("yyyy-MM-dd'T'HH:mm:ssxxx");
+
         date_default_timezone_set('UTC');
         I18n::locale(I18n::DEFAULT_LOCALE);
     }
@@ -724,6 +727,25 @@ class TimeTest extends TestCase
     }
 
     /**
+     * Test jsonSerialize no side-effects
+     *
+     * @dataProvider classNameProvider
+     * @return void
+     */
+    public function testJsonEncodeSideEffectFree($class)
+    {
+        if (version_compare(INTL_ICU_VERSION, '50.0', '<')) {
+            $this->markTestSkipped('ICU 5x is needed');
+        }
+        $date = new \Cake\I18n\FrozenTime('2016-11-29 09:00:00');
+        $this->assertInstanceOf('DateTimeZone', $date->timezone);
+
+        $result = json_encode($date);
+        $this->assertEquals('"2016-11-29T09:00:00+00:00"', $result);
+        $this->assertInstanceOf('DateTimeZone', $date->getTimezone());
+    }
+
+    /**
      * Tests debugInfo
      *
      * @dataProvider classNameProvider
@@ -894,6 +916,6 @@ class TimeTest extends TestCase
         $result = str_replace(['گرینویچ'], 'GMT', $result);
         $result = str_replace(['  '], ' ', $result);
 
-        return $this->assertSame($expected, $result, $message);
+        $this->assertSame($expected, $result, $message);
     }
 }

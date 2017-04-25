@@ -119,9 +119,9 @@ class ConsoleOutput
     ];
 
     /**
-     * formatting options for colored output
+     * Formatting options for colored output.
      *
-     * @var string
+     * @var array
      */
     protected static $_options = [
         'bold' => 1,
@@ -160,7 +160,7 @@ class ConsoleOutput
      */
     public function __construct($stream = 'php://stdout')
     {
-        $this->_output = fopen($stream, 'w');
+        $this->_output = fopen($stream, 'wb');
 
         if ((DIRECTORY_SEPARATOR === '\\' && !(bool)env('ANSICON') && env('ConEmuANSI') !== 'ON') ||
             (function_exists('posix_isatty') && !posix_isatty($this->_output))
@@ -170,12 +170,12 @@ class ConsoleOutput
     }
 
     /**
-     * Outputs a single or multiple messages to stdout. If no parameters
+     * Outputs a single or multiple messages to stdout or stderr. If no parameters
      * are passed, outputs just a newline.
      *
      * @param string|array $message A string or an array of strings to output
      * @param int $newlines Number of newlines to append
-     * @return int Returns the number of bytes returned from writing to stdout.
+     * @return int|bool The number of bytes returned from writing to output.
      */
     public function write($message, $newlines = 1)
     {
@@ -244,7 +244,7 @@ class ConsoleOutput
      * Writes a message to the output stream.
      *
      * @param string $message Message to write.
-     * @return bool success
+     * @return int|bool The number of bytes returned from writing to output.
      */
     protected function _write($message)
     {
@@ -306,7 +306,7 @@ class ConsoleOutput
      * Get/Set the output type to use. The output type how formatting tags are treated.
      *
      * @param int|null $type The output type to use. Should be one of the class constants.
-     * @return int|null  Either null or the value if getting.
+     * @return int|null Either null or the value if getting.
      */
     public function outputAs($type = null)
     {

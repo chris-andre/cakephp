@@ -72,7 +72,7 @@ class QueryLoggerTest extends TestCase
      *
      * @return void
      */
-    public function testStringInterpolation2()
+    public function testStringInterpolationNotNamed()
     {
         $logger = $this->getMockBuilder('\Cake\Database\Log\QueryLogger')
             ->setMethods(['_log'])
@@ -92,7 +92,7 @@ class QueryLoggerTest extends TestCase
      *
      * @return void
      */
-    public function testStringInterpolation3()
+    public function testStringInterpolationDuplicate()
     {
         $logger = $this->getMockBuilder('\Cake\Database\Log\QueryLogger')
             ->setMethods(['_log'])
@@ -124,6 +124,26 @@ class QueryLoggerTest extends TestCase
         $logger->expects($this->once())->method('_log')->with($query);
         $logger->log($query);
         $expected = "duration=0 rows=0 SELECT a FROM b where a = 'string' AND b = 'test' AND c = 5 AND d = 3";
+        $this->assertEquals($expected, (string)$query);
+    }
+
+    /**
+     * Tests that placeholders are replaced with correctly escaped strings
+     *
+     * @return void
+     */
+    public function testStringInterpolationSpecialChars()
+    {
+        $logger = $this->getMockBuilder('\Cake\Database\Log\QueryLogger')
+            ->setMethods(['_log'])
+            ->getMock();
+        $query = new LoggedQuery;
+        $query->query = 'SELECT a FROM b where a = :p1 AND b = :p2 AND c = :p3 AND d = :p4';
+        $query->params = ['p1' => '$2y$10$dUAIj', 'p2' => '$0.23', 'p3' => 'a\\0b\\1c\\d', 'p4' => "a'b"];
+
+        $logger->expects($this->once())->method('_log')->with($query);
+        $logger->log($query);
+        $expected = "duration=0 rows=0 SELECT a FROM b where a = '\$2y\$10\$dUAIj' AND b = '\$0.23' AND c = 'a\\\\0b\\\\1c\\\\d' AND d = 'a''b'";
         $this->assertEquals($expected, (string)$query);
     }
 

@@ -20,8 +20,6 @@ use Cake\Database\ValueBinder;
 
 /**
  * This class represents a SQL Case statement
- *
- * @internal
  */
 class CaseExpression implements ExpressionInterface
 {
@@ -49,7 +47,7 @@ class CaseExpression implements ExpressionInterface
      *
      * @var string|\Cake\Database\ExpressionInterface|array|null
      */
-    protected $_elseValue = null;
+    protected $_elseValue;
 
     /**
      * Constructs the case expression

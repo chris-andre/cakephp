@@ -20,8 +20,6 @@ use Cake\Database\ValueBinder;
 /**
  * This expression represents SQL fragments that are used for comparing one tuple
  * to another, one tuple to a set of other tuples or one tuple to an expression
- *
- * @internal
  */
 class TupleComparison extends Comparison
 {
@@ -29,7 +27,7 @@ class TupleComparison extends Comparison
     /**
      * Constructor
      *
-     * @param string|array $fields the fields to use to form a tuple
+     * @param string|array|\Cake\Database\ExpressionInterface $fields the fields to use to form a tuple
      * @param array|\Cake\Database\ExpressionInterface $values the values to use to form a tuple
      * @param array $types the types names to use for casting each of the values, only
      * one type per position in the value array in needed
@@ -154,13 +152,13 @@ class TupleComparison extends Comparison
             return;
         }
 
-        foreach ($value as $i => $value) {
+        foreach ($value as $i => $val) {
             if ($this->isMulti()) {
-                foreach ($value as $v) {
+                foreach ($val as $v) {
                     $this->_traverseValue($v, $callable);
                 }
             } else {
-                $this->_traverseValue($value, $callable);
+                $this->_traverseValue($val, $callable);
             }
         }
     }
